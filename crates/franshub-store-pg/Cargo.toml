@@ -1,0 +1,37 @@
+[package]
+name = "franshub-store-pg"
+description = "PostgreSQL stores for FransHub products: managed tokens, OIDC sessions and the audit log"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+anyhow.workspace = true
+async-trait.workspace = true
+chrono.workspace = true
+franshub-access.workspace = true
+franshub-auth.workspace = true
+franshub-oidc.workspace = true
+serde_json.workspace = true
+sqlx.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+axum.workspace = true
+base64.workspace = true
+franshub-http.workspace = true
+http-body-util.workspace = true
+rand.workspace = true
+reqwest.workspace = true
+ring.workspace = true
+serde.workspace = true
+sha2.workspace = true
+tower.workspace = true
+tracing-subscriber.workspace = true
+url.workspace = true

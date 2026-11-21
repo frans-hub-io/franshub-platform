@@ -1,0 +1,38 @@
+[package]
+name = "franshub-auth"
+description = "Authentication for FransHub products: static and managed tokens, OIDC, the Platform state, /api/v1/me and the managed tokens API"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+anyhow.workspace = true
+async-trait.workspace = true
+axum.workspace = true
+chrono.workspace = true
+franshub-access.workspace = true
+franshub-http.workspace = true
+franshub-oidc.workspace = true
+hex.workspace = true
+metrics.workspace = true
+rand.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+subtle.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+base64.workspace = true
+http-body-util.workspace = true
+reqwest.workspace = true
+ring.workspace = true
+tower.workspace = true
+tracing-subscriber.workspace = true
+url.workspace = true

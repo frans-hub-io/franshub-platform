@@ -1,0 +1,65 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/franshub-access",
+    "crates/franshub-auth",
+    "crates/franshub-oidc",
+    "crates/franshub-store-pg",
+    "crates/franshub-observe",
+    "crates/franshub-http",
+    "crates/franshub-redact",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+repository = "https://github.com/frans-hub-io/franshub-platform"
+
+[workspace.dependencies]
+aho-corasick = "1.1"
+anyhow = "1"
+async-trait = "0.1"
+axum = { version = "0.8.9", features = ["macros"] }
+base64 = "0.22"
+chrono = { version = "0.4", features = ["serde"] }
+hex = "0.4"
+http = "1"
+http-body-util = "0.1"
+hyper = { version = "1", features = ["server", "http1", "http2"] }
+hyper-util = { version = "0.1", features = ["server-auto", "server-graceful", "tokio", "service"] }
+metrics = "0.24"
+metrics-exporter-prometheus = { version = "0.18.3", default-features = false }
+opentelemetry = "0.33.1"
+opentelemetry-appender-tracing = "0.33.1"
+opentelemetry-otlp = { version = "0.33.1", default-features = false, features = ["http-proto", "reqwest-blocking-client", "reqwest-rustls", "trace", "logs", "metrics"] }
+opentelemetry_sdk = { version = "0.33.1", features = ["rt-tokio"] }
+rand = "0.9"
+rcgen = { version = "0.14", features = ["pem"] }
+regex = "1"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+ring = "0.17"
+rust-embed = { version = "8.13.0", features = ["debug-embed"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+serde_yaml_ng = "0.10"
+sha2 = "0.10"
+sqlx = { version = "0.9.0", default-features = false, features = ["runtime-tokio", "tls-rustls", "postgres", "uuid", "chrono", "json", "migrate", "macros"] }
+subtle = "2"
+tokio = { version = "1.54.1", features = ["full"] }
+tokio-rustls = { version = "0.26", default-features = false, features = ["ring", "tls12"] }
+tower = "0.5"
+tracing = "0.1"
+tracing-opentelemetry = "0.34.0"
+tracing-subscriber = { version = "0.3", features = ["json", "env-filter"] }
+url = "2"
+uuid = { version = "1", features = ["v4", "v7", "serde"] }
+franshub-access = { path = "crates/franshub-access", version = "0.1.0" }
+franshub-auth = { path = "crates/franshub-auth", version = "0.1.0" }
+franshub-oidc = { path = "crates/franshub-oidc", version = "0.1.0" }
+franshub-http = { path = "crates/franshub-http", version = "0.1.0" }
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"

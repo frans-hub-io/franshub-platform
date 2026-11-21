@@ -1,0 +1,15 @@
+[package]
+name = "franshub-redact"
+description = "Redaction of secrets in headers, query strings, JSON and text for FransHub products"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+aho-corasick.workspace = true
+regex.workspace = true
+serde_json.workspace = true

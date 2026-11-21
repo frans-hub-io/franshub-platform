@@ -1,0 +1,61 @@
+.art {
+  position: relative;
+  width: 160px;
+  height: 120px;
+  margin-bottom: 4px;
+}
+
+.art svg {
+  display: block;
+}
+
+.artIcon {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  transform: translate(-28%, -40%);
+  display: inline-flex;
+  color: #fffcff;
+}
+
+.blob {
+  fill: var(--fh-ui-param-bg);
+}
+
+.back {
+  fill: var(--fh-color-surface);
+  stroke: var(--fh-ui-param-border);
+  stroke-width: 1.5;
+}
+
+.line {
+  fill: rgba(255, 252, 255, 0.85);
+}
+
+.lineSoft {
+  fill: rgba(255, 252, 255, 0.5);
+}
+
+.dot {
+  fill: var(--fh-ui-param-border);
+}
+
+.fransA {
+  stop-color: var(--fh-color-brand-frans-gradient-start);
+}
+
+.fransB {
+  stop-color: var(--fh-color-brand-frans-gradient-end);
+}
+
+.hubA {
+  stop-color: var(--fh-color-brand-hub-gradient-start);
+}
+
+.hubB {
+  stop-color: var(--fh-color-brand-hub-gradient-end);
+}
+
+:root[data-mantine-color-scheme='dark'] .artIcon {
+  color: #1a1522;
+}

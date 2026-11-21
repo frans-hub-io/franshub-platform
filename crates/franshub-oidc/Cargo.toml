@@ -1,0 +1,36 @@
+[package]
+name = "franshub-oidc"
+description = "OIDC sign-in (authorization code with PKCE, server-side sessions) and bearer JWT validation for FransHub products"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+anyhow.workspace = true
+async-trait.workspace = true
+axum.workspace = true
+base64.workspace = true
+chrono.workspace = true
+franshub-access.workspace = true
+franshub-http.workspace = true
+hex.workspace = true
+metrics.workspace = true
+rand.workspace = true
+reqwest.workspace = true
+ring.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+subtle.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+url.workspace = true
+
+[dev-dependencies]
+http-body-util.workspace = true
+tower.workspace = true
+uuid.workspace = true
