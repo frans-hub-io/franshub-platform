@@ -155,6 +155,7 @@ pub fn install_prometheus() -> anyhow::Result<PrometheusHandle> {
 /// Installs the Prometheus recorder and the global tracing subscriber (JSON or text logs, plus
 /// OTLP traces and logs when requested). Once per process.
 pub fn init(cfg: TelemetryConfig) -> anyhow::Result<Telemetry> {
+    let _ = rustls::crypto::ring::default_provider().install_default();
     let prometheus = install_prometheus()?;
     opentelemetry::global::set_text_map_propagator(TraceContextPropagator::new());
     let default_filter = cfg.default_filter.clone();
