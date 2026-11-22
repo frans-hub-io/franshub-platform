@@ -3,7 +3,8 @@
 ## Reporting a vulnerability
 
 Report suspected vulnerabilities privately through GitHub private vulnerability reporting
-(Security tab, "Report a vulnerability"), not in public issues or pull requests. Include the
+(Security tab, "Report a vulnerability") or by email to info@franshub.io, not in public issues or pull
+requests. Include the
 affected version, a description, and steps to reproduce. You will get an answer within five
 working days.
 
