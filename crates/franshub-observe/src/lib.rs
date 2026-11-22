@@ -1,6 +1,6 @@
 //! Observability for FransHub products: tracing (JSON or text) with optional OTLP export of traces
-//! and logs, a Prometheus recorder, HTTP metrics and request-id middleware, and W3C
-//! `traceparent` helpers.
+//! and logs, a Prometheus recorder, HTTP metrics and request-id middleware, process metrics, and
+//! W3C `traceparent` helpers.
 //!
 //! ```no_run
 //! use axum::{Router, middleware, routing::get};
@@ -15,6 +15,8 @@
 //!     .merge(metrics_router(telemetry.prometheus.clone()));
 //! # Ok(()) }
 //! ```
+
+pub mod process;
 
 use std::collections::HashMap;
 use std::time::Instant;
@@ -225,20 +227,26 @@ pub fn init(cfg: TelemetryConfig) -> anyhow::Result<Telemetry> {
     })
 }
 
-/// A router answering `GET /metrics` with the Prometheus text format. Mount it on a listener
-/// that is not public, or protect it.
+/// A router answering `GET /metrics` with the Prometheus text format: the recorder's metrics and
+/// the standard process metrics ([`process`]). Mount it on a listener that is not public, or
+/// protect it.
 pub fn metrics_router<S: Clone + Send + Sync + 'static>(handle: PrometheusHandle) -> Router<S> {
     Router::new().route(
         "/metrics",
         get(move || {
             let h = handle.clone();
             async move {
+                let mut body = h.render();
+                if !body.is_empty() && !body.ends_with('\n') {
+                    body.push('\n');
+                }
+                body.push_str(&process::render());
                 (
                     [(
                         header::CONTENT_TYPE,
                         HeaderValue::from_static("text/plain; version=0.0.4"),
                     )],
-                    h.render(),
+                    body,
                 )
                     .into_response()
             }
@@ -537,5 +545,19 @@ mod tests {
         );
         let r = call(Request::get("/metrics").body(Body::empty()).unwrap()).await;
         assert_eq!(r.status(), 200);
+        let body = r.into_body().collect().await.unwrap().to_bytes();
+        let text = String::from_utf8(body.to_vec()).unwrap();
+        assert!(text.contains("http_requests_total{"), "{text}");
+        if cfg!(target_os = "linux") {
+            for name in [
+                "process_resident_memory_bytes",
+                "process_virtual_memory_bytes",
+                "process_cpu_seconds_total",
+                "process_open_fds",
+                "process_start_time_seconds",
+            ] {
+                assert!(text.contains(&format!("\n{name} ")), "{name}: {text}");
+            }
+        }
     }
 }
