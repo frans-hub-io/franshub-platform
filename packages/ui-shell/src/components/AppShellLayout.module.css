@@ -238,6 +238,10 @@
   background: linear-gradient(135deg, var(--fh-color-brand-frans-gradient-start), var(--fh-color-brand-frans-gradient-end));
 }
 
+.avatar::before {
+  content: attr(data-initial);
+}
+
 :root[data-mantine-color-scheme='dark'] .avatar {
   color: #1a1522;
 }

@@ -44,7 +44,7 @@ function SearchButton({ onOpen }: { onOpen: () => void }) {
   const mod = isMac() ? '⌘' : 'Ctrl';
   return (
     <>
-      <UnstyledButton className={classes.search} onClick={onOpen} aria-label={`Search (${mod}+K)`} data-testid="open-palette" visibleFrom="sm">
+      <UnstyledButton className={classes.search} onClick={onOpen} aria-keyshortcuts={isMac() ? 'Meta+K' : 'Control+K'} data-testid="open-palette" visibleFrom="sm">
         <IconSearch size={16} />
         <span className={classes.searchText}>Search or jump to…</span>
         <span className="fh-kbd" aria-hidden>
@@ -67,9 +67,7 @@ function UserMenu() {
       <Menu.Target>
         <UnstyledButton aria-label={`Account: ${who}`} data-testid="user-menu" className={classes.principal}>
           <Group gap={8} wrap="nowrap">
-            <span className={classes.avatar} aria-hidden>
-              {(who.trim()[0] ?? '?').toUpperCase()}
-            </span>
+            <span className={classes.avatar} aria-hidden data-initial={(who.trim()[0] ?? '?').toUpperCase()} />
             <Text size="sm" fw={500} visibleFrom="sm" className="fh-truncate" maw={160} data-testid="user-name">
               {who}
             </Text>

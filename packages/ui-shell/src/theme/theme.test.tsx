@@ -1,4 +1,4 @@
-import { DEFAULT_THEME, defaultCssVariablesResolver, mergeMantineTheme } from '@mantine/core';
+import { DEFAULT_THEME, Drawer, Modal, defaultCssVariablesResolver, mergeMantineTheme } from '@mantine/core';
 import { fireEvent, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { renderThemed } from '../test/render';
@@ -58,6 +58,21 @@ describe('theme', () => {
     expect(franshubTheme.fontFamily).toContain('Noto Sans');
     expect(franshubTheme.fontFamilyMonospace).toContain('JetBrains Mono');
     expect(franshubTheme.defaultRadius).toBe('md');
+  });
+
+  it('names the close button of every modal and drawer', async () => {
+    renderThemed(
+      <>
+        <Modal opened onClose={() => undefined} title="A modal">
+          body
+        </Modal>
+        <Drawer opened onClose={() => undefined} title="A drawer">
+          body
+        </Drawer>
+      </>,
+    );
+    const buttons = await screen.findAllByRole('button', { name: 'Close' });
+    expect(buttons).toHaveLength(2);
   });
 
   it('is dark by default when nothing is saved', () => {

@@ -35,8 +35,8 @@ export const franshubTheme = createTheme({
   headings: { fontFamily: SANS, fontWeight: '800' },
   components: {
     Tooltip: Tooltip.extend({ defaultProps: { withArrow: true } }),
-    Modal: Modal.extend({ defaultProps: { radius: 'lg', overlayProps: { backgroundOpacity: 0.45, blur: 2 } } }),
-    Drawer: Drawer.extend({ defaultProps: { overlayProps: { backgroundOpacity: 0.45, blur: 2 } } }),
+    Modal: Modal.extend({ defaultProps: { radius: 'lg', overlayProps: { backgroundOpacity: 0.45, blur: 2 }, closeButtonProps: { 'aria-label': 'Close' } } }),
+    Drawer: Drawer.extend({ defaultProps: { overlayProps: { backgroundOpacity: 0.45, blur: 2 }, closeButtonProps: { 'aria-label': 'Close' } } }),
     SegmentedControl: SegmentedControl.extend({ defaultProps: { radius: 'md' } }),
     // Primary actions are gold with dark on-accent text; other variants and explicit colors keep Mantine's rules.
     Button: Button.extend({
