@@ -166,6 +166,10 @@ bindings:
 - `init(TelemetryConfig::new("fastproof", LogFormat::Json))` installs JSON or text logs, OTLP
   traces and logs when `OTEL_EXPORTER_OTLP_*ENDPOINT` is set, and the Prometheus recorder
   (`telemetry.prometheus`); `metrics_router(handle)` serves `GET /metrics`.
+- Every `_seconds` histogram gets `LATENCY_BUCKETS` (1 ms to 5 min). Give a single histogram
+  other buckets by its full name with `TelemetryConfig::histogram_buckets` (or
+  `prometheus_builder_with` / `install_prometheus_with`), for example `LONG_DURATION_BUCKETS`
+  (1 s to a day) for test run or job durations.
 - Middleware: `http_metrics` (`http_requests_total`, `http_request_duration_seconds` by route
   template) and `request_id` (`X-Request-Id`, `RequestId` extension, request span).
 - `parse_traceparent`, `TraceContext`, `attach_parent`, `outgoing_traceparent`.

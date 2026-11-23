@@ -79,6 +79,9 @@ pub struct TelemetryConfig {
     pub otlp: Option<bool>,
     /// Name of the `build_info` gauge (set to 1 with a `version` label); `None` for no gauge.
     pub build_info: Option<(String, String)>,
+    /// Buckets of single histograms by full metric name, in place of [`LATENCY_BUCKETS`] (for
+    /// example [`LONG_DURATION_BUCKETS`] for durations of minutes to hours).
+    pub histogram_buckets: Vec<(String, Vec<f64>)>,
 }
 
 impl TelemetryConfig {
@@ -91,6 +94,7 @@ impl TelemetryConfig {
                 .into(),
             otlp: None,
             build_info: None,
+            histogram_buckets: Vec::new(),
         }
     }
 }
@@ -139,26 +143,62 @@ fn otel_requested() -> bool {
         .any(|k| std::env::var(k).map(|v| !v.is_empty()).unwrap_or(false))
 }
 
-/// A Prometheus recorder builder with latency buckets for every `_seconds` histogram.
+/// Buckets of every `_seconds` histogram: request and query latencies up to five minutes.
+pub const LATENCY_BUCKETS: [f64; 16] = [
+    0.001, 0.0025, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0, 60.0, 300.0,
+];
+
+/// Buckets for durations of seconds to a day, such as test runs or jobs (seconds).
+pub const LONG_DURATION_BUCKETS: [f64; 18] = [
+    1.0, 5.0, 15.0, 30.0, 60.0, 120.0, 300.0, 600.0, 900.0, 1800.0, 2700.0, 3600.0, 5400.0, 7200.0,
+    10800.0, 14400.0, 28800.0, 86400.0,
+];
+
+/// A Prometheus recorder builder with [`LATENCY_BUCKETS`] for every `_seconds` histogram.
 pub fn prometheus_builder() -> anyhow::Result<PrometheusBuilder> {
-    let buckets = [
-        0.001, 0.0025, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0, 60.0,
-        300.0,
-    ];
-    Ok(PrometheusBuilder::new()
-        .set_buckets_for_metric(Matcher::Suffix("_seconds".into()), &buckets)?)
+    prometheus_builder_with(&[])
+}
+
+/// As [`prometheus_builder`], with `overrides` giving the buckets of single histograms by full
+/// metric name; they win over the `_seconds` default. Bucket bounds must be finite and
+/// increasing.
+pub fn prometheus_builder_with(
+    overrides: &[(String, Vec<f64>)],
+) -> anyhow::Result<PrometheusBuilder> {
+    let mut b = PrometheusBuilder::new()
+        .set_buckets_for_metric(Matcher::Suffix("_seconds".into()), &LATENCY_BUCKETS)?;
+    for (name, buckets) in overrides {
+        if name.is_empty() {
+            anyhow::bail!("histogram buckets need a metric name");
+        }
+        if buckets.is_empty()
+            || buckets.iter().any(|v| !v.is_finite())
+            || buckets.windows(2).any(|w| w[0] >= w[1])
+        {
+            anyhow::bail!("buckets of {name}: finite bounds in increasing order");
+        }
+        b = b.set_buckets_for_metric(Matcher::Full(name.clone()), buckets)?;
+    }
+    Ok(b)
 }
 
 /// Installs the global Prometheus recorder; once per process.
 pub fn install_prometheus() -> anyhow::Result<PrometheusHandle> {
-    Ok(prometheus_builder()?.install_recorder()?)
+    install_prometheus_with(&[])
+}
+
+/// As [`install_prometheus`], with per-metric buckets ([`prometheus_builder_with`]).
+pub fn install_prometheus_with(
+    overrides: &[(String, Vec<f64>)],
+) -> anyhow::Result<PrometheusHandle> {
+    Ok(prometheus_builder_with(overrides)?.install_recorder()?)
 }
 
 /// Installs the Prometheus recorder and the global tracing subscriber (JSON or text logs, plus
 /// OTLP traces and logs when requested). Once per process.
 pub fn init(cfg: TelemetryConfig) -> anyhow::Result<Telemetry> {
     let _ = rustls::crypto::ring::default_provider().install_default();
-    let prometheus = install_prometheus()?;
+    let prometheus = install_prometheus_with(&cfg.histogram_buckets)?;
     opentelemetry::global::set_text_map_propagator(TraceContextPropagator::new());
     let default_filter = cfg.default_filter.clone();
     let filter = move || {
@@ -485,6 +525,50 @@ mod tests {
         let out = outgoing_traceparent(&tracing::Span::none(), Some(tp)).unwrap();
         assert!(out.starts_with("00-0af7651916cd43dd8448eb211c80319c-"));
         assert!(outgoing_traceparent(&tracing::Span::none(), None).is_none());
+    }
+
+    #[test]
+    fn histograms_take_buckets_by_name_over_the_latency_default() {
+        let recorder = prometheus_builder_with(&[(
+            "job_duration_seconds".into(),
+            LONG_DURATION_BUCKETS.to_vec(),
+        )])
+        .unwrap()
+        .build_recorder();
+        let handle = recorder.handle();
+        metrics::with_local_recorder(&recorder, || {
+            metrics::histogram!("job_duration_seconds", "project" => "p").record(5000.0);
+            metrics::histogram!("query_seconds").record(0.2);
+        });
+        let text = handle.render();
+        assert!(
+            text.contains("job_duration_seconds_bucket{project=\"p\",le=\"3600\"} 0"),
+            "{text}"
+        );
+        assert!(
+            text.contains("job_duration_seconds_bucket{project=\"p\",le=\"5400\"} 1"),
+            "{text}"
+        );
+        assert!(
+            text.contains("job_duration_seconds_bucket{project=\"p\",le=\"86400\"} 1"),
+            "{text}"
+        );
+        assert!(
+            text.contains("query_seconds_bucket{le=\"300\"} 1"),
+            "{text}"
+        );
+        assert!(
+            !text.contains("query_seconds_bucket{le=\"3600\"}"),
+            "{text}"
+        );
+        for bad in [vec![], vec![1.0, 1.0], vec![2.0, 1.0], vec![1.0, f64::NAN]] {
+            assert!(prometheus_builder_with(&[("x_seconds".into(), bad)]).is_err());
+        }
+        assert!(prometheus_builder_with(&[(String::new(), vec![1.0])]).is_err());
+        assert_eq!(
+            TelemetryConfig::new("s", LogFormat::Json).histogram_buckets,
+            vec![]
+        );
     }
 
     #[test]
