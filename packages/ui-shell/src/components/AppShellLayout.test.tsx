@@ -47,6 +47,32 @@ describe('AppShellLayout', () => {
     expect(onNavigate).toHaveBeenCalledWith('/launches');
   });
 
+  it('names the search button by its visible text and announces the shortcut separately', () => {
+    mockFetch((url) => (url.pathname === '/api/v1/me' ? { body: ALICE } : undefined));
+    renderWithAuth(
+      <AppShellLayout productName="Example Reports" navItems={NAV}>
+        <p>page content</p>
+      </AppShellLayout>,
+    );
+    const button = screen.getByTestId('open-palette');
+    expect(button).not.toHaveAttribute('aria-label');
+    expect(button).toHaveAccessibleName('Search or jump to…');
+    expect(button).toHaveAttribute('aria-keyshortcuts', expect.stringMatching(/^(Control|Meta)\+K$/));
+  });
+
+  it('keeps the avatar initial out of the text of the account button so its label contains its visible text', async () => {
+    mockFetch((url) => (url.pathname === '/api/v1/me' ? { body: ALICE } : undefined));
+    renderWithAuth(
+      <AppShellLayout productName="Example Reports" navItems={NAV}>
+        <p>page content</p>
+      </AppShellLayout>,
+    );
+    const button = await screen.findByTestId('user-menu');
+    expect(button.querySelector('[data-initial]')).toHaveTextContent('');
+    expect(button.querySelector('[data-initial]')?.getAttribute('data-initial')).toMatch(/^\S$/);
+    expect(button.getAttribute('aria-label')).toContain(screen.getByTestId('user-name').textContent);
+  });
+
   it('offers visible pages in the command palette', async () => {
     mockFetch((url) => (url.pathname === '/api/v1/me' ? { body: ALICE } : undefined));
     const onNavigate = vi.fn();
